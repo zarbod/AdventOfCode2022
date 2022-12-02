@@ -14,7 +14,7 @@ main :: IO ()
 main = do
   input <- openFile "input.txt" ReadMode
   contents <- hGetContents input
-  let rps = filter (\x -> last x /= "") . map (splitOn " ") . splitOn "\n" $ contents
+  let rps = filter ((/= "") . last) . map (splitOn " ") . splitOn "\n" $ contents
   putStrLn $ show (sum . map (points (1, 2, 3, 3, 0, 6) 0) $ rps) -- part 1
   putStrLn $ show (sum . map (points (0, 6, 3, 3, 1, 2) 1) $ rps) -- part 2
   hClose input
