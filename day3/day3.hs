@@ -8,8 +8,7 @@ getVal a
   | otherwise = (ord a) - 96
 
 common :: (String, String) -> Int
-common (a, b)
-  | otherwise =  getVal . head . filter (\x -> x `elem` b) $ a
+common (a, b) = getVal . head . filter (\x -> x `elem` b) $ a
 
 commonSum :: [(String, String)] -> Int
 commonSum x = sum . map (common) $ x
