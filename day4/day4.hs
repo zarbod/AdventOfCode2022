@@ -2,7 +2,7 @@ import System.IO
 import Data.List.Split
 
 toInt :: [String] -> [[Int]]
-toInt xs = map (\x -> map (\a -> read a::Int) x) . map (splitOn "-") $ xs
+toInt xs = map (map (\a -> read a::Int)) . map (splitOn "-") $ xs
 
 contains :: [[Int]] -> Bool
 contains (x:y:xs) = (check x y) || (check y x)
