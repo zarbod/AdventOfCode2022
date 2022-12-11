@@ -21,21 +21,42 @@ parse (x:xs) (y:ys)
   |x == ' ' = y:parse xs ys
   |otherwise = (y ++ [x]):parse xs ys
 
-move :: Int -> Int -> [String] -> [String]
-move x y xs = foldl (\acc (t1, t2) -> if t2 == y 
-  then acc ++ ([box]:[t1]) else acc ++ [t1]) [[]] arr 
-  where arr = (zip xs [1..(length xs)])
-        box = head $ xs !! (x - 1)
+genStacks :: String -> [String]
+genStacks contents = foldl (\acc x -> parse x acc) (listOfNLists(num)) finStack
+  where mat = filter (/="") . splitOn "\n" $ contents
+        num = ((length . head $ mat) + 1 ) `div` 4
+        crates = init . takeWhile ((==(4 * num - 1)) . length) $ mat
+        finStack = map (takeEveryN 3 1) $ map (trunc 4) crates
+
+genMoves :: String -> [String]
+genMoves xs = filter (/="from") . filter (/="to") . splitOn " " . drop 5 $ xs
+
+-- above stuff is for parsing below stuff is for solving
+
+move :: Int -> Int -> Int -> [String] -> [String]
+move n x y xs = map (\(r, t) -> if (t == y) then box ++ r 
+                    else if (t == x) then drop n r else r) arr
+  where arr = zip xs [1..]
+        box = take n $ xs !! (x - 1)
+
+move_n :: Int -> Int -> Int -> [String] -> [String]
+move_n 0 _ _ xs = xs
+move_n n x y xs = move_n (n - 1) x y (move 1 x y xs)
+
+step :: [String] -> [String] -> (Int -> Int -> Int -> [String] -> [String]) -> [String]
+step (x:y:z:xs) stacks f = f (read x::Int) (read y::Int) (read z::Int) stacks
+
+solve :: [[String]] -> [String] -> (Int -> Int -> Int -> [String] -> [String]) -> [String] 
+solve [] stacks f = stacks 
+solve (x:xs) stacks f = solve xs (step x stacks f) f
 
 main :: IO ()
 main = do
-    input <- openFile "d5.txt" ReadMode
+    input <- openFile "input.txt" ReadMode
     contents <- hGetContents input
-    let mat = filter (/="") . splitOn "\n" $ contents
-    let num = ((length . head $ mat) + 1 ) `div` 4
-    let crates = init . takeWhile ((==(4 * num - 1)) . length) $ mat
-    let finStack = map (takeEveryN 3 1) $ map (trunc 4) crates
-    let stacks = foldl (\acc x -> parse x acc) (listOfNLists(num)) finStack 
-    print $ move 2 1 stacks
-    print stacks 
+    let stacks = genStacks contents
+    let moves = map(genMoves). init . splitOn "\n" . last . splitOn "\n\n" $ contents
+    let codeWord f = foldr (\x acc -> (head x):acc) "" (solve moves stacks f) -- part 1
+    print $ codeWord (move_n) -- part 1
+    print $ codeWord (move) -- part 2
     hClose input
